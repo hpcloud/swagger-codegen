@@ -28,11 +28,7 @@
     */
   function {{classname}}($http) {
     this.$http = $http;
-    this.baseUrl = '/api/ce/v2';
-    this.defaultHeaders = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
-    };
+    this.baseUrl = '/proxy/v2';
   }
 
   angular.extend({{classname}}.prototype, {
@@ -46,13 +42,14 @@
      * @param {object} params - the query parameters
      * @returns {promise} A resolved/rejected promise
      */
-    {{nickname}}: function ({{#pathParams}}{{paramName}}, {{/pathParams}}{{#bodyParam}}data, {{/bodyParam}}{{#hasFormParams}}data, {{/hasFormParams}}params) {
+    {{nickname}}: function (guid, {{#pathParams}}{{paramName}}, {{/pathParams}}{{#bodyParam}}data, {{/bodyParam}}{{#hasFormParams}}data, {{/hasFormParams}}params) {
       var path = this.baseUrl + '{{path}}'{{#pathParams}}
-        .replace('{' + '{{baseName}}' + '}', {{paramName}}){{/pathParams}};{{#headerParams}}
-      var headers = angular.extend({}, this.defaultHeaders);
+        .replace('{' + '{{baseName}}' + '}', {{paramName}}){{/pathParams}};
+      var headers = {
+        cnsi_guid: guid
+      };{{#headerParams}}
       headers['{{baseName}}'] = {{paramName}};{{#consumes.1}}
       headers['Content-Type'] = '{{mediaType}}';{{/consumes.1}}{{/headerParams}}{{^headerParams}}{{#consumes.1}}
-      var headers = angular.extend({}, this.defaultHeaders);
       headers['Content-Type'] = '{{mediaType}}';{{/consumes.1}}{{/headerParams}}
 
       var config = {
@@ -60,10 +57,8 @@
         url: path,
         params: params || {},{{#bodyParam}}
         data: data,{{/bodyParam}}{{#hasFormParams}}
-        data: data,{{/hasFormParams}}{{#headerParams}}
-        headers: headers{{/headerParams}}{{^headerParams}}{{#consumes.1}}
-        headers: headers{{/consumes.1}}{{/headerParams}}{{^headerParams}}{{^consumes.1}}
-        headers: this.defaultHeaders{{/consumes.1}}{{/headerParams}}
+        data: data,{{/hasFormParams}}
+        headers: headers
       };
 
       return this.$http(config);
