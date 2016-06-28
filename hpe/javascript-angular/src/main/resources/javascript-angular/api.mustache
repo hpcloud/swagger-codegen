@@ -24,29 +24,30 @@
     * @param {object} $http - the Angular $http service
     * @property {object} $http - the Angular $http service
     * @property {string} baseUrl - the API base URL
-    * @property {object} defaultHeaders - the default headers
     */
   function {{classname}}($http) {
     this.$http = $http;
-    this.baseUrl = '/proxy/v2';
+    this.baseUrl = '/pp/v1/proxy/v2';
   }
 
   angular.extend({{classname}}.prototype, {
     {{#operation}}
     /**
      * @name {{nickname}}
-     * @description {{summary}}{{#pathParams}}
+     * @description {{summary}}
+     * @param {string} guid - the HCE instance GUID{{#pathParams}}
      * @param {!{{dataType}}} {{paramName}} - {{description}}{{/pathParams}}{{#bodyParam}}
      * @param {object} data - the request body{{/bodyParam}}{{#hasFormParams}}
      * @param {object} data - the request form data{{/hasFormParams}}
      * @param {object} params - the query parameters
+     * @param {object} httpConfigOptions - additional config options
      * @returns {promise} A resolved/rejected promise
      */
-    {{nickname}}: function (guid, {{#pathParams}}{{paramName}}, {{/pathParams}}{{#bodyParam}}data, {{/bodyParam}}{{#hasFormParams}}data, {{/hasFormParams}}params) {
+    {{nickname}}: function (guid, {{#pathParams}}{{paramName}}, {{/pathParams}}{{#bodyParam}}data, {{/bodyParam}}{{#hasFormParams}}data, {{/hasFormParams}}params, httpConfigOptions) {
       var path = this.baseUrl + '{{path}}'{{#pathParams}}
         .replace('{' + '{{baseName}}' + '}', {{paramName}}){{/pathParams}};
       var headers = {
-        cnsi_guid: guid
+        'x-cnap-cnsi-list': guid
       };{{#headerParams}}
       headers['{{baseName}}'] = {{paramName}};{{#consumes.1}}
       headers['Content-Type'] = '{{mediaType}}';{{/consumes.1}}{{/headerParams}}{{^headerParams}}{{#consumes.1}}
@@ -60,6 +61,14 @@
         data: data,{{/hasFormParams}}
         headers: headers
       };
+
+      angular.forEach(httpConfigOptions, function (optionConfig, option) {
+        if (option === 'headers') {
+          angular.extend(config[option], optionConfig);
+        } else {
+          config[option] = optionConfig;
+        }
+      });
 
       return this.$http(config);
     }{{#hasMore}},
